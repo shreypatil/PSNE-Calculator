@@ -61,7 +61,7 @@ def get_input():
     print(reshaped)
     return reshaped.transpose(transpose_axes), player_count, strat_count
 
-
+#################################################################
 
 def disp_vwds(utility_for_player):
     """Function displays very weakly dominant strategies (given utilities for this player)"""
@@ -125,6 +125,63 @@ def vwds(utility_matrix, player_count):
 
     # strategy_matrix_for_player(utility_matrix, player_count, strat_count, 1, slice_string)
 
+#################################################################
+# PSNE Calculation
+
+def replace_at_index(tup, ix, val):
+    return tup[:ix] + (val,) + tup[ix+1:]
+
+
+
+
+def ismax(matrix, idx, pos, axis) :
+    
+    for i in range(matrix.shape[-(axis+1)]) :
+        replace_idx = len(matrix.shape) - axis - 1
+        jj = replace_at_index(idx, axis, i)
+        # print(jj)
+        # time.sleep(2)
+        if matrix[jj][pos] > matrix[idx][pos] :
+            return False
+        
+    return True
+
+
+     
+
+def psne(matrix, player_count) :
+    
+    psnes = set()
+    temp = set()
+    
+    for idx, utility in np.ndenumerate(matrix) :
+        
+        if ismax(matrix=matrix, idx=idx, pos=0, axis=0) :
+            psnes.add(idx)
+            
+    
+    for axis in range(1, player_count) :
+        
+        for idx in psnes :
+            if ismax(matrix=matrix, idx=idx, pos=axis, axis=axis) :
+                temp.add(idx)
+        
+        psnes = temp
+        temp = set()      
+        
+    return psnes
+
+
+def print_psnes(psnes: set) :
+    
+    print(len(psnes))
+    
+    for psne in psnes : 
+        sarr = [str(a + 1) for a in psne]
+        print(' '.join(sarr))
+
+
+#################################################################
 def main() :
     
     tracing_start()
@@ -133,7 +190,9 @@ def main() :
     utility_matrix, player_count, strat_count = get_input()
     print(utility_matrix)
     vwds(utility_matrix, player_count)
-
+    
+    print_psnes(psne(matrix=utility_matrix, player_count=player_count))
+    
     end = time.time()
     tracing_mem()
     print("time elapsed {} milli seconds".format((end-start)*1000))
