@@ -1,22 +1,23 @@
 import numpy as np
-import tracemalloc
-import time
+
+# import tracemalloc
+# import time
 
 #################################################################
 # For performance
 
-def tracing_start():
+# def tracing_start():
 
-    tracemalloc.stop()
-    print("nTracing Status : ", tracemalloc.is_tracing())
-    tracemalloc.start()
-    print("Tracing Status : ", tracemalloc.is_tracing())
+#     tracemalloc.stop()
+#     print("nTracing Status : ", tracemalloc.is_tracing())
+#     tracemalloc.start()
+#     print("Tracing Status : ", tracemalloc.is_tracing())
 
-def tracing_mem():
+# def tracing_mem():
 
-    first_size, first_peak = tracemalloc.get_traced_memory()
-    peak = first_peak/(1024*1024)
-    print("Peak Size in MB - ", peak)
+#     first_size, first_peak = tracemalloc.get_traced_memory()
+#     peak = first_peak/(1024*1024)
+#     print("Peak Size in MB - ", peak)
 
 #################################################################
 
@@ -31,15 +32,17 @@ def get_input():
     element_count = player_count
     dim = []
     transpose_axes = []
+    matrix_dtype = ""
 
     for idx, val in enumerate(strat_count) :
         dim.append(int(val))
         transpose_axes.append(idx)
         element_count *= int(val)
+        matrix_dtype += "f,"
 
     dim.reverse()
     transpose_axes.reverse()
-    print(transpose_axes)
+    # print(transpose_axes)
     
 
     elements = input().strip().split(' ')
@@ -47,10 +50,9 @@ def get_input():
     
     matrix_sz = element_count // player_count
     
-    strat_matrix = np.empty(matrix_sz, dtype=object)
-    
-    # for idx, val in enumerate(elements) :
-    #     strat_matrix[idx] = float(val)
+    strat_matrix = np.empty(matrix_sz, dtype=matrix_dtype[:-1])
+    # print(strat_matrix.dtype)
+
     i = 0
     while i < matrix_sz :
         j = i*player_count
@@ -58,54 +60,32 @@ def get_input():
         i += 1
     
     reshaped = strat_matrix.reshape(tuple(dim))
-    print(reshaped)
-    return reshaped.transpose(transpose_axes), player_count, strat_count
+    return reshaped.transpose(transpose_axes), player_count
 
 #################################################################
 
 def disp_vwds(utility_for_player):
     """Function displays very weakly dominant strategies (given utilities for this player)"""
-    strat = None
-    other_weak_dom = None
+    
+    max_array = np.max(utility_for_player, axis=0)
+    # print(max_array)
 
-    for i in range(len(utility_for_player)):    
-        if strat is None:
-            strat = i
-            other_weak_dom = [] # Clear 
-            continue
+    vwds_array = []
+    for index in range(len(utility_for_player)):
+        if (max_array == utility_for_player[index]).all():
+            vwds_array.append(index)
+    
+    print(len(vwds_array), end=" ")
 
-        if (utility_for_player[strat] >= utility_for_player[i]).all():
-            if (utility_for_player[strat] == utility_for_player[i]).all():
-                other_weak_dom.append(i)
-            else:
-                continue
-        elif (utility_for_player[strat] <= utility_for_player[i]).all():
-            if (utility_for_player[strat] == utility_for_player[i]).all():
-                other_weak_dom.append(i)
-            else:
-                strat = i
-                other_weak_dom = []
-        else:
-            strat = None
-    
-    if strat is None:
-        print(0)
-        return
-    
-    # other_weak_dom.append(strat)
-    print(len(other_weak_dom) + 1, strat + 1, sep=" ", end=" ")
-    
-    for strategy in other_weak_dom:
-        print(strategy + 1, end = " ")
+    for index in vwds_array:
+        print(index + 1, end = " ")
 
     print()
 
 def vwds(utility_matrix, player_count):
     """Finds and displays very-weakly dominant strategies for each player"""
 
-    slice_string = ""
-    for _ in range(player_count):
-        slice_string += ":,"
+    offset = 0
 
     for i in range(player_count):
         transpose_axes = [i]
@@ -114,16 +94,10 @@ def vwds(utility_matrix, player_count):
         for j in range(i + 1, player_count):
             transpose_axes.append(j)
 
-        disp_vwds(eval(f"utility_matrix[{slice_string} i]").transpose(transpose_axes))
+        disp_vwds(utility_matrix.getfield("f", offset).transpose(transpose_axes))
 
-    # disp_vwds(utility_matrix[:,:,0])
-    # disp_vwds(utility_matrix[:,:,:,0])
-    # disp_vwds(utility_matrix[:,:,:,1].transpose((1,0,2)))
-    # disp_vwds(utility_matrix[:,:,:,2].transpose((2,0,1)))
+        offset += 4
 
-    # print(utility_matrix[:,:,1])
-
-    # strategy_matrix_for_player(utility_matrix, player_count, strat_count, 1, slice_string)
 
 #################################################################
 # PSNE Calculation
@@ -182,18 +156,18 @@ def print_psnes(psnes: set) :
 #################################################################
 def main() :
     
-    tracing_start()
-    start = time.time()
+    # tracing_start()
+    # start = time.time()
 
-    utility_matrix, player_count, strat_count = get_input()
-    print(utility_matrix)
+
+    utility_matrix, player_count = get_input()
+    print_psnes(psne(matrix=utility_matrix, player_count=player_count))
     vwds(utility_matrix, player_count)
     
-    print_psnes(psne(matrix=utility_matrix, player_count=player_count))
-    
-    end = time.time()
-    tracing_mem()
-    print("time elapsed {} milli seconds".format((end-start)*1000))
+
+    # end = time.time()
+    # tracing_mem()
+    # print("time elapsed {} milli seconds".format((end-start)))
 
 if __name__ == '__main__':
     main()
