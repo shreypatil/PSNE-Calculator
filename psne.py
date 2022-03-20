@@ -136,11 +136,9 @@ def replace_at_index(tup, ix, val):
 
 def ismax(matrix, idx, pos, axis) :
     
-    for i in range(matrix.shape[-(axis+1)]) :
-        replace_idx = len(matrix.shape) - axis - 1
+    for i in range(matrix.shape[axis]) :
+        # replace_idx = len(matrix.shape) - axis - 1
         jj = replace_at_index(idx, axis, i)
-        # print(jj)
-        # time.sleep(2)
         if matrix[jj][pos] > matrix[idx][pos] :
             return False
         
@@ -154,7 +152,7 @@ def psne(matrix, player_count) :
     psnes = set()
     temp = set()
     
-    for idx, utility in np.ndenumerate(matrix) :
+    for idx, _ in np.ndenumerate(matrix) :
         
         if ismax(matrix=matrix, idx=idx, pos=0, axis=0) :
             psnes.add(idx)
@@ -167,10 +165,10 @@ def psne(matrix, player_count) :
                 temp.add(idx)
         
         psnes = temp
-        temp = set()      
+        temp = set()
+        
         
     return psnes
-
 
 def print_psnes(psnes: set) :
     
