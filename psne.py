@@ -29,8 +29,8 @@ def get_input():
     assert len(strat_count) == player_count, "Number of strategies must be specified for each Player"
     
     element_count = player_count
-    dim = [player_count]
-    transpose_axes = [player_count]
+    dim = []
+    transpose_axes = []
 
     for idx, val in enumerate(strat_count) :
         dim.append(int(val))
@@ -39,17 +39,29 @@ def get_input():
 
     dim.reverse()
     transpose_axes.reverse()
+    print(transpose_axes)
+    
 
     elements = input().strip().split(' ')
     assert len(elements) == element_count, " Incorrect number of Utilities Provided"
     
-    strat_matrix = np.empty(element_count)
+    matrix_sz = element_count // player_count
     
-    for idx, val in enumerate(elements) :
-        strat_matrix[idx] = float(val)
+    strat_matrix = np.empty(matrix_sz, dtype=object)
+    
+    # for idx, val in enumerate(elements) :
+    #     strat_matrix[idx] = float(val)
+    i = 0
+    while i < matrix_sz :
+        j = i*player_count
+        strat_matrix[i] = tuple(np.float_(elements[j:j+player_count]))
+        i += 1
     
     reshaped = strat_matrix.reshape(tuple(dim))
+    print(reshaped)
     return reshaped.transpose(transpose_axes), player_count, strat_count
+
+
 
 def disp_vwds(utility_for_player):
     """Function displays very weakly dominant strategies (given utilities for this player)"""
